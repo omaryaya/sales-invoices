@@ -1,0 +1,12 @@
+version: '3'
+services:
+  postgres-db:
+    container_name: postgres-db
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: omar
+      POSTGRES_PASSWORD: OmarYAYA
+      POSTGRES_DB: jetbrains_sales_db
