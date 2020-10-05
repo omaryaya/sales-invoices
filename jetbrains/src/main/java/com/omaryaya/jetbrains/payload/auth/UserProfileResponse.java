@@ -1,4 +1,4 @@
-package com.omaryaya.jetbrains.payload;
+package com.omaryaya.jetbrains.payload.auth;
 
 import java.time.Instant;
 

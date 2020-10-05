@@ -1,4 +1,6 @@
-package com.omaryaya.jetbrains.payload;
+package com.omaryaya.jetbrains.payload.product;
+
+import com.omaryaya.jetbrains.payload.order.OrderResponse;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

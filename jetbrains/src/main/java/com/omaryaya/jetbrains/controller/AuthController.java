@@ -2,6 +2,7 @@ package com.omaryaya.jetbrains.controller;
 
 import com.omaryaya.jetbrains.exception.AppException;
 import com.omaryaya.jetbrains.entity.*;
+import com.omaryaya.jetbrains.payload.auth.*;
 import com.omaryaya.jetbrains.payload.*;
 import com.omaryaya.jetbrains.repository.RoleRepository;
 import com.omaryaya.jetbrains.repository.UserRepository;
@@ -14,6 +15,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +25,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.validation.Valid;
 import java.net.URI;
 import java.util.Collections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -43,6 +47,8 @@ public class AuthController {
     @Autowired
     JwtTokenProvider tokenProvider;
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 
@@ -52,7 +58,7 @@ public class AuthController {
                         loginRequest.getPassword()
                 )
         );
-
+        
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = tokenProvider.generateToken(authentication);
@@ -89,5 +95,15 @@ public class AuthController {
                 .buildAndExpand(result.getUsername()).toUri();
 
         return ResponseEntity.created(location).body(new ApiResponse<>(true, "User registered successfully", result.getUsername()));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+
+        logger.info("Logging out user.");
+        // SecurityContextLogoutHandler
+        SecurityContextHolder.getContext().setAuthentication(null);
+
+        return ResponseEntity.ok().build();
     }
 }

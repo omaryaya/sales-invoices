@@ -3,6 +3,8 @@ package com.omaryaya.jetbrains.payload;
 import java.time.Instant;
 import java.util.List;
 
+import com.omaryaya.jetbrains.payload.order.OrderResponse;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

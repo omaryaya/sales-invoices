@@ -1,9 +1,8 @@
-package com.omaryaya.jetbrains.payload;
+package com.omaryaya.jetbrains.payload.product;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-import com.omaryaya.jetbrains.entity.ProductCategory;
 
 import lombok.Data;
 
@@ -14,7 +13,7 @@ public class ProductNewRequest {
     private String name;
 
     @NotNull
-    private ProductCategory category;
+    private Long categoryId;
 
     private String sku;
 

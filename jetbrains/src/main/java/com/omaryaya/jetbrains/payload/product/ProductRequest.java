@@ -1,16 +1,15 @@
-package com.omaryaya.jetbrains.payload;
+package com.omaryaya.jetbrains.payload.product;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 
 @Data
 public class ProductRequest {
 
-    @NotBlank
+    @NotNull
     private Long id;
 
-    @NotBlank
     private String name;
     
 }

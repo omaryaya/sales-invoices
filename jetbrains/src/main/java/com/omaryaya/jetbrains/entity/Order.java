@@ -10,6 +10,7 @@ import java.util.List;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.omaryaya.jetbrains.entity.audit.UserDateAudit;
 
 import org.hibernate.annotations.BatchSize;
@@ -42,6 +43,7 @@ public class Order extends UserDateAudit {
     )
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 30)
+    @JsonIgnoreProperties("order")
     private List<Product> products = new ArrayList<>();
     
     @NotNull
