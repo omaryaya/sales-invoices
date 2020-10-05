@@ -12,11 +12,9 @@ public class ProductNewRequest {
     @NotBlank
     private String name;
 
-    @NotNull
-    private Long categoryId;
-
     private String sku;
 
+    @NotNull
     private Double price;
     
 }

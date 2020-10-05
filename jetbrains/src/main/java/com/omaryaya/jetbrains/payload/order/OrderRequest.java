@@ -3,8 +3,6 @@ package com.omaryaya.jetbrains.payload.order;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import com.omaryaya.jetbrains.payload.product.ProductRequest;
-
 import lombok.Data;
 
 import java.util.List;
@@ -16,8 +14,8 @@ public class OrderRequest {
 
     private String referenceNumber;
 
-    @NotNull
-    @Valid
-    private List<ProductRequest> products;
+    private List<ItemRequest> items;
+
+    private Long customerId;
     
 }

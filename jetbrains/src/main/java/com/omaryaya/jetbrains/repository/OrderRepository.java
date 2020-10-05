@@ -19,8 +19,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Page<Order> findByCustomerId(Long customerId, Pageable pageable);
 
-    Page<Order> findByProducts_categoryId(Long categoryId, Pageable pageable);
-    
+    List<Order> findByCustomerId(Long customerId);
+
     Page<Order> findByCreatedBy(Long userId, Pageable pageable);
 
     long countByCreatedBy(Long userId);

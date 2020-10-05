@@ -1,6 +1,5 @@
 package com.omaryaya.jetbrains.controller;
 
-import com.omaryaya.jetbrains.entity.ProductCategory;
 import com.omaryaya.jetbrains.payload.ApiResponse;
 import com.omaryaya.jetbrains.payload.PagedResponse;
 import com.omaryaya.jetbrains.payload.product.ProductNewRequest;
@@ -36,21 +35,58 @@ public class ProductController {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
-    @GetMapping("/all")
-    public PagedResponse<ProductResponse> getProducts(@CurrentUser final UserPrincipal currentUser,
-            @RequestParam(value = "page", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final int page,
-            @RequestParam(value = "size", defaultValue = Constants.DEFAULT_PAGE_SIZE) final int size) {
-        return productService.getAllProducts(currentUser, page, size);
+    // Create
+    
+    @PostMapping("/create")
+    public ResponseEntity<?> createProduct(@CurrentUser final UserPrincipal currentUser,
+            @Valid @RequestBody final ProductNewRequest productRequest) {
+        try {
+
+            final ProductResponse product = productService.createProduct(productRequest);
+
+            final URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{productId}")
+                    .buildAndExpand(product.getId()).toUri();
+
+            logger.info("Product {} added.", product.getName());
+
+            return ResponseEntity.created(location).body(new ApiResponse<ProductResponse>(true, product));
+        } catch (final Exception ex) {
+            return ResponseEntity.badRequest()
+                    .body(new ApiResponse<>(false, "Failed to add product. " + ex.getLocalizedMessage()));
+        }
+    }
+
+    // Read
+
+    // used for drop-downs and select components
+    @GetMapping("/all/list")
+    public ResponseEntity<?> getProductsList(@CurrentUser final UserPrincipal currentUser) {
+
+        try {
+            List<ProductResponse> products = productService.getAllProductsList(currentUser);
+            return ResponseEntity.ok().body(products);
+        } catch (Exception ex) {
+            logger.error("Unable to get products", ex);
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage()));
+        }
 
     }
-    /* @GetMapping("/order/{orderId}")
-    public PagedResponse<ProductResponse> getProductsByOrderId(@CurrentUser final UserPrincipal currentUser,
-            @RequestParam(value = "page", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final int page,
-            @RequestParam(value = "size", defaultValue = Constants.DEFAULT_PAGE_SIZE) final int size,
-            @PathVariable(value = "orderId") final Long orderId) {
-        return productService.getProductsByOrderId(currentUser, page, size, orderId);
 
-    } */
+    @GetMapping("/all")
+    public ResponseEntity<?> getProducts(@CurrentUser final UserPrincipal currentUser,
+            @RequestParam(value = "page", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final int page,
+            @RequestParam(value = "size", defaultValue = Constants.DEFAULT_PAGE_SIZE) final int size) {
+
+        try {
+            PagedResponse<ProductResponse> products = productService.getAllProducts(currentUser, page, size);
+            return ResponseEntity.ok().body(products);
+        } catch (Exception ex) {
+            logger.error("Unable to get products", ex);
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage()));
+        }
+
+    }
+
 
     @GetMapping("/product/{id}")
     public ResponseEntity<?> getProductById(@CurrentUser final UserPrincipal currentUser, @PathVariable final Long id) {
@@ -64,6 +100,10 @@ public class ProductController {
         }
     }
 
+    // Update
+
+    // Delete
+
     @DeleteMapping("/product/{id}")
     public ResponseEntity<?> deleteProductById(@CurrentUser final UserPrincipal currentUser, @PathVariable final Long id) {
 
@@ -74,56 +114,6 @@ public class ProductController {
         } catch (final Exception ex) {
             logger.error("Unable to delete product", ex);
             return ResponseEntity.badRequest().build();
-        }
-    }
-
-
-    @PostMapping("/create")
-    public ResponseEntity<?> createProduct(@Valid @RequestBody final ProductNewRequest newProductRequest) {
-        try {
-
-            final ProductResponse product = productService.createProduct(newProductRequest);
-
-            final URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{productId}")
-                    .buildAndExpand(product.getId()).toUri();
-
-            logger.info("Product {} added.", product.getName());
-
-            // return ResponseEntity.created(location).body(new ApiResponse(true, "Product
-            // Added Successfully"));
-            return ResponseEntity.created(location).body(new ApiResponse<ProductResponse>(true, product));
-        } catch (final Exception ex) {
-            return ResponseEntity.badRequest()
-                    .body(new ApiResponse<>(false, "Failed to add product. " + ex.getLocalizedMessage()));
-        }
-    }
-
-    //                                          Categories
-
-
-    @PostMapping("/category/create")
-    public ResponseEntity<?> createCategory(@CurrentUser final UserPrincipal currentUser, @Valid @RequestBody final ProductCategory category) {
-        try {
-            productService.createProductCategory(category);
-            logger.info("Product Category {} added.", category.getName());
-            return ResponseEntity.accepted()
-                    .body(new ApiResponse<>(true, "Product Category Added Successfully", category));
-        } catch (final Exception ex) {
-            logger.debug("Product Category already exists.");
-            return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Product Category already exists."));
-        }
-    }
-
-    @GetMapping("/categories")
-    public ResponseEntity<?> getCategories(@CurrentUser final UserPrincipal currentUser) {
-        try {
-            List<ProductCategory> categories = productService.getProductCategories();
-            
-            return ResponseEntity.accepted()
-                    .body(new ApiResponse<>(true, "Categories", categories));
-        } catch (final Exception ex) {
-            logger.debug("Product Category already exists.");
-            return ResponseEntity.badRequest().body(new ApiResponse<>(false, "Unable to retrieve categories. "+ex.getMessage()));
         }
     }
 

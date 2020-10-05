@@ -1,25 +1,21 @@
 package com.omaryaya.jetbrains.service;
 
-import com.omaryaya.jetbrains.entity.*;
-import com.omaryaya.jetbrains.payload.product.*;
-import com.omaryaya.jetbrains.payload.order.*;
-import com.omaryaya.jetbrains.payload.*;
+import java.time.Instant;
+import java.util.Currency;
+import java.util.List;
+import java.util.Set;
+
+import com.omaryaya.jetbrains.entity.Order;
+import com.omaryaya.jetbrains.entity.Product;
+import com.omaryaya.jetbrains.payload.order.ItemRequest;
+import com.omaryaya.jetbrains.payload.order.OrderRequest;
 import com.omaryaya.jetbrains.repository.OrderRepository;
 import com.omaryaya.jetbrains.security.UserPrincipal;
-import com.omaryaya.jetbrains.util.Helper;
-import com.omaryaya.jetbrains.util.Mapper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class OrderService {
@@ -32,97 +28,69 @@ public class OrderService {
     @Autowired
     private ProductService productService;
 
-    public PagedResponse<Order> getAllOrders(UserPrincipal currentUser, int page, int size) {
+    @Autowired
+    private ItemService itemService;
 
-        Helper.validatePageAndSize(page, size);
+    // Create 
 
-        // get orders
-        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "createdAt");
-        Page<Order> orders = orderRepository.findAll(pageable);
+    public Order createOrder(UserPrincipal currentUser, OrderRequest orderRequest) {
 
-        /*
-         * List<OrderResponse> orderResponses = orders.map(order -> { return new
-         * Mapper<Order, OrderResponse>().mapEntityToDto(order, OrderResponse.class);
-         * 
-         * }).getContent();
-         */
+        logger.debug("CREATE ORDER");
+        Order order = new Order();
+        
+        if(orderRequest.getReferenceNumber() != null)
+            order.setReferenceNumber(orderRequest.getReferenceNumber().trim());
+        
+        
+        if(orderRequest.getCurrency() != null)
+            order.setCurrency(Currency.getInstance(orderRequest.getCurrency().trim().toUpperCase()));
+        
+        order.setDate(Instant.now());
 
-        /*
-         * for(ProductResponse res : productResponses)
-         * System.out.println("PRODUCT RESPONSE: "+res);
-         */
+        /*  TODO: Handle order customer
+        if(orderRequest.getCustomerId() != null)
+            order.setCustomer(null); */
+        
+        logger.debug("order before save", order);
+        order = orderRepository.save(order);
+        logger.debug("order after save", order);
 
-        /*
-         * return new PagedResponse<>(productResponses, products.getNumber(),
-         * products.getSize(), products.getTotalElements(), products.getTotalPages(),
-         * products.isLast());
-         */
-        return new PagedResponse<>(orders.getContent(), orders.getNumber(), orders.getSize(), orders.getTotalElements(),
-                orders.getTotalPages(), orders.isLast());
+        for(ItemRequest itemRequest : orderRequest.getItems()) {
+            Product product = productService.findProductById(currentUser, itemRequest.getProductId());
+            itemRequest.setOrderId(order.getId());
+            itemService.createItem(currentUser, itemRequest.getQuantity(), order, product);
+        }
+        
+        return order;
+
+    }
+
+    // Read
+    
+    public List<Order> getAllOrders(UserPrincipal currentUser) {
+        return orderRepository.findAll();
     }
 
     public Order findOrderById(UserPrincipal currentUser, Long id) {
 
         Order order = orderRepository.findById(id).orElseThrow();
-
-        /*
-         * ProductResponse productResponse = new Mapper<Product,
-         * ProductResponse>().mapEntityToDto(product, ProductResponse.class);
-         */
         return order;
     }
 
-    public Order createOrder(UserPrincipal currentUser, OrderRequest orderRequest) {
+    // Update
 
-        logger.debug("CREATE ORDER");
-
-        List<Product> orderProducts = new ArrayList<>();
-        for (ProductRequest productRequest : orderRequest.getProducts()) {
-            orderProducts.add(productService.findProductById(currentUser, productRequest.getId()));
-        }
-
-        Order order = new Order();
-        if (orderRequest.getCurrency() != null)
-            order.setCurrency(orderRequest.getCurrency());
-        if (orderRequest.getReferenceNumber() != null)
-            order.setReferenceNumber(orderRequest.getReferenceNumber());
-        order.setProducts(orderProducts);
-        order.setDate(Instant.now());
-
-        logger.debug("order before save", order);
-        order = orderRepository.save(order);
-        logger.debug("order after save", order);
-        for (Product product : orderProducts) {
-            productService.setProductOrder(product, order);
-        }
-        Mapper<Order, OrderResponse> responseMapper = new Mapper<>();
-        OrderResponse orderResponse = responseMapper.mapEntityToDto(order, OrderResponse.class);
-        logger.debug("order response", orderResponse);
-        return order;
-
-    }
+    // Delete
 
     public void deleteOrderById(UserPrincipal currentUser, Long id) {
         orderRepository.deleteById(id);
-        logger.info("user "+currentUser.getName()+" deleted product with id "+id);
-    }
-
-    public PagedResponse<ProductResponse> getProductsByOrderId(UserPrincipal currentUser, Long orderId, int page,
-            int size) {
-        return productService.getProductsByOrderId(currentUser, orderId, page, size);
+        logger.info("user "+currentUser.getName()+" deleted order with id "+id);
     }
 
 
-    public List<OrderNewRequest> getOrdersNew(UserPrincipal currentUser) {
-        List<Order> orders = orderRepository.findAll();
-        List<OrderNewRequest> orderNewRequests = new ArrayList<>();
-        for(Order order : orders) {
-            OrderNewRequest onr = new OrderNewRequest();
-            productService.getOrderProductsItems(currentUser, order.getId());
 
-        }
-
-        return orderNewRequests;
+    // Currencies
+    public Set<Currency> getCurrencies() {
+        return Currency.getAvailableCurrencies();
     }
 
 }

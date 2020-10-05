@@ -15,6 +15,6 @@ public class OrderNewRequest {
 
     private Long customerId;
 
-    private List<OrderItem> items;
+    private List<ItemRequest> items;
     
 }

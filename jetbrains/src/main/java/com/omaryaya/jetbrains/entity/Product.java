@@ -25,21 +25,10 @@ public class Product extends UserDateAudit {
 
     @NotBlank
     private String name;
-
-
-    @NotNull
-    private ProductCategory category;
-
     
     @Size(max = 20)
     private String sku;
 
     private Double price;
-
-    @ManyToOne
-    @JoinColumn
-    private Order order;
-
-
     
 }

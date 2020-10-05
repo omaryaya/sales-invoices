@@ -1,22 +1,23 @@
 package com.omaryaya.jetbrains.entity;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Currency;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.omaryaya.jetbrains.entity.audit.UserDateAudit;
 
-import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.NaturalId;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 
 @Entity
@@ -34,25 +35,14 @@ public class Order extends UserDateAudit {
     @NaturalId
     @GeneratedValue(strategy = GenerationType.AUTO)
     private String referenceNumber;
-
-    @OneToMany(
-            mappedBy = "order",
-            cascade = CascadeType.ALL,
-            fetch = FetchType.EAGER,
-            orphanRemoval = true
-    )
-    @Fetch(FetchMode.SELECT)
-    @BatchSize(size = 30)
-    @JsonIgnoreProperties("order")
-    private List<Product> products = new ArrayList<>();
     
     @NotNull
     private Instant date;
 
-    private String currency;
+    private Currency currency;
 
     @ManyToOne
+    @JoinColumn(name = "customer_id")
     private Customer customer;
-    
     
 }

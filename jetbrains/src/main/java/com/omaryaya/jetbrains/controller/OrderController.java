@@ -1,6 +1,8 @@
 package com.omaryaya.jetbrains.controller;
 
 import java.net.URI;
+import java.util.Currency;
+import java.util.List;
 
 import javax.validation.Valid;
 
@@ -36,54 +38,13 @@ public class OrderController {
     private OrderService ordersService;
 
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-
     
-    @GetMapping("/all")
-    public PagedResponse<Order> getOrders(@CurrentUser final UserPrincipal currentUser,
-            @RequestParam(value = "page", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final int page,
-            @RequestParam(value = "size", defaultValue = Constants.DEFAULT_PAGE_SIZE) final int size) {
-        return ordersService.getAllOrders(currentUser, page, size);
-
-    }
-    @GetMapping("/new")
-    public void getOrdersNew(@CurrentUser final UserPrincipal currentUser,
-            @RequestParam(value = "page", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final int page,
-            @RequestParam(value = "size", defaultValue = Constants.DEFAULT_PAGE_SIZE) final int size) {
-        ordersService.getOrdersNew(currentUser);
-
-    }
-
-    @GetMapping("/order/{id}/products")
-    public ResponseEntity<?> getProductsByOrderId(@CurrentUser final UserPrincipal currentUser,
-    @RequestParam(value = "page", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final int page,
-            @RequestParam(value = "size", defaultValue = Constants.DEFAULT_PAGE_SIZE) final int size,
-             @PathVariable final Long id) {
-
-        try {
-            final PagedResponse<?> products = ordersService.getProductsByOrderId(currentUser, id, page, size);
-            return ResponseEntity.ok().body(new ApiResponse<>(true, "Product Found.", products));
-
-        } catch (final Exception ex) {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @DeleteMapping("/order/{id}")
-    public ResponseEntity<?> deleteOrderById(@CurrentUser final UserPrincipal currentUser, @PathVariable final Long id) {
-
-        try {
-            ordersService.deleteOrderById(currentUser, id);
-            return ResponseEntity.ok().body(new ApiResponse<>(true, "Order Deleted."));
-
-        } catch (final Exception ex) {
-            logger.error("Unable to delete order", ex);
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-
+    
+    // Create
+    
     @PostMapping("/create")
-    public ResponseEntity<?> createOrder(@CurrentUser final UserPrincipal currentUser, @Valid @RequestBody final OrderRequest orderRequest) {
+    public ResponseEntity<?> createOrder(@CurrentUser final UserPrincipal currentUser,
+            @Valid @RequestBody final OrderRequest orderRequest) {
         try {
 
             final Order order = ordersService.createOrder(currentUser, orderRequest);
@@ -96,7 +57,54 @@ public class OrderController {
             return ResponseEntity.created(location).body(new ApiResponse<Order>(true, order));
         } catch (final Exception ex) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<>(false, "Failed to add order. " + ex.getLocalizedMessage()));
+                    .body(new ApiResponse<>(false, "Failed to add order. " + ex.getMessage()));
+        }
+    }
+
+    // Read
+
+    @GetMapping("/all")
+    public ResponseEntity<?> getOrders(@CurrentUser final UserPrincipal currentUser,
+            @RequestParam(value = "page", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final int page,
+            @RequestParam(value = "size", defaultValue = Constants.DEFAULT_PAGE_SIZE) final int size) {
+
+        try {
+            List<Order> orders = ordersService.getAllOrders(currentUser);
+            return ResponseEntity.ok().body(orders);
+        } catch (Exception ex) {
+            logger.error("Unable to get orders", ex);
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage()));
+        }
+
+    }
+
+    @GetMapping("/currencies")
+    public ResponseEntity<?> getCurrencies(@CurrentUser final UserPrincipal currentUser) {
+
+        try {
+            return ResponseEntity.ok().body(ordersService.getCurrencies());
+        } catch (Exception ex) {
+            logger.error("Unable to get currencies", ex);
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage()));
+        }
+
+    }
+
+    // Update
+
+    // Delete
+
+    @DeleteMapping("/order/{id}")
+    public ResponseEntity<?> deleteOrderById(@CurrentUser final UserPrincipal currentUser,
+            @PathVariable final Long id) {
+
+        try {
+            ordersService.deleteOrderById(currentUser, id);
+            return ResponseEntity.ok().body(new ApiResponse<>(true, "Order Deleted."));
+
+        } catch (final Exception ex) {
+            logger.error("Unable to delete order", ex);
+            return ResponseEntity.badRequest().build();
         }
     }
 
