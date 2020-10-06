@@ -90,6 +90,18 @@ public class OrderController {
 
     }
 
+    @GetMapping("/order/{id}/items")
+    public ResponseEntity<?> getItems(@CurrentUser final UserPrincipal currentUser, @PathVariable Long id) {
+
+        try {
+            return ResponseEntity.ok().body(ordersService.getItems(currentUser, id));
+        } catch (Exception ex) {
+            logger.error("Unable to get items", ex);
+            return ResponseEntity.badRequest().body(new ApiResponse<>(false, ex.getMessage()));
+        }
+
+    }
+
     // Update
 
     // Delete

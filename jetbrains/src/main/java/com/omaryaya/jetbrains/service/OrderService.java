@@ -5,6 +5,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Set;
 
+import com.omaryaya.jetbrains.entity.Item;
 import com.omaryaya.jetbrains.entity.Order;
 import com.omaryaya.jetbrains.entity.Product;
 import com.omaryaya.jetbrains.payload.order.ItemRequest;
@@ -91,6 +92,12 @@ public class OrderService {
     // Currencies
     public Set<Currency> getCurrencies() {
         return Currency.getAvailableCurrencies();
+    }
+
+    // Items
+    // Currencies
+    public List<Item> getItems(UserPrincipal currentUser, Long orderId) {
+        return itemService.getAllItemsOfOrder(currentUser, orderId);
     }
 
 }
