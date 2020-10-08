@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.omaryaya.jetbrains.entity.Item;
 import com.omaryaya.jetbrains.entity.Order;
+import com.omaryaya.jetbrains.entity.OrderStatus;
 import com.omaryaya.jetbrains.entity.Product;
 import com.omaryaya.jetbrains.payload.order.ItemRequest;
 import com.omaryaya.jetbrains.payload.order.OrderRequest;
@@ -16,6 +17,7 @@ import com.omaryaya.jetbrains.security.UserPrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,6 +49,7 @@ public class OrderService {
             order.setCurrency(Currency.getInstance(orderRequest.getCurrency().trim().toUpperCase()));
         
         order.setDate(Instant.now());
+        order.setStatus(OrderStatus.NEW);
 
         /*  TODO: Handle order customer
         if(orderRequest.getCustomerId() != null)
@@ -69,7 +72,7 @@ public class OrderService {
     // Read
     
     public List<Order> getAllOrders(UserPrincipal currentUser) {
-        return orderRepository.findAll();
+        return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
     public Order findOrderById(UserPrincipal currentUser, Long id) {
@@ -79,6 +82,16 @@ public class OrderService {
     }
 
     // Update
+
+    // Update order status
+    
+	public void setOrderStatus(Long id, OrderStatus status) {
+        orderRepository.findById(id).map(order -> {
+            order.setStatus(status);
+            return orderRepository.save(order);
+            
+        }).orElseThrow();
+	}
 
     // Delete
 
@@ -99,5 +112,6 @@ public class OrderService {
     public List<Item> getItems(UserPrincipal currentUser, Long orderId) {
         return itemService.getAllItemsOfOrder(currentUser, orderId);
     }
+
 
 }

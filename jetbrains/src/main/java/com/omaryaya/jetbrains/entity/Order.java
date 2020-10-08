@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.Currency;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -44,5 +46,8 @@ public class Order extends UserDateAudit {
     @ManyToOne
     @JoinColumn(name = "customer_id")
     private Customer customer;
+
+    @Enumerated(EnumType.ORDINAL)
+    private OrderStatus status;
     
 }

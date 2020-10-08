@@ -39,7 +39,7 @@ public class ProductController {
     
     @PostMapping("/create")
     public ResponseEntity<?> createProduct(@CurrentUser final UserPrincipal currentUser,
-            @Valid @RequestBody final ProductNewRequest productRequest) {
+            @RequestBody final ProductNewRequest productRequest) {
         try {
 
             final ProductResponse product = productService.createProduct(productRequest);
@@ -49,10 +49,10 @@ public class ProductController {
 
             logger.info("Product {} added.", product.getName());
 
-            return ResponseEntity.created(location).body(new ApiResponse<ProductResponse>(true, product));
+            return ResponseEntity.created(location).body(new ApiResponse<ProductResponse>(true,"Product "+product.getName()+" added", product));
         } catch (final Exception ex) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<>(false, "Failed to add product. " + ex.getLocalizedMessage()));
+                    .body(new ApiResponse<>(false, "Failed to add product. "));
         }
     }
 

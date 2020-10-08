@@ -1,6 +1,5 @@
 package com.omaryaya.jetbrains.entity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.*;
@@ -31,6 +30,6 @@ public class Customer extends UserDateAudit {
     private String address;
 
     @OneToMany
-    List<Order> orders = new ArrayList<>();    
+    List<Order> orders;    
     
 }

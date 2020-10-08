@@ -1,27 +1,28 @@
 package com.omaryaya.jetbrains.controller;
 
 import java.net.URI;
+import java.util.Currency;
 import java.util.List;
 
 import javax.validation.Valid;
 
 import com.omaryaya.jetbrains.entity.Order;
-import com.omaryaya.jetbrains.entity.OrderStatus;
 import com.omaryaya.jetbrains.payload.ApiResponse;
+import com.omaryaya.jetbrains.payload.PagedResponse;
 import com.omaryaya.jetbrains.payload.order.OrderRequest;
 import com.omaryaya.jetbrains.security.CurrentUser;
 import com.omaryaya.jetbrains.security.UserPrincipal;
+import com.omaryaya.jetbrains.service.ItemService;
 import com.omaryaya.jetbrains.service.OrderService;
+import com.omaryaya.jetbrains.service.ProductService;
 import com.omaryaya.jetbrains.util.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-// import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,16 +32,20 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
-@RequestMapping("/api/orders")
-public class OrderController {
+@RequestMapping("/api/dashboard")
+public class DashboardController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
 
     @Autowired
     private OrderService ordersService;
 
-    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-
+    @Autowired
+    private ProductService productsService;
+    
+    
     // Create
-
+    
     @PostMapping("/create")
     public ResponseEntity<?> createOrder(@CurrentUser final UserPrincipal currentUser,
             @RequestBody final OrderRequest orderRequest) {
@@ -103,22 +108,6 @@ public class OrderController {
 
     // Update
 
-    // Update order status
-    @PutMapping("/order/{id}/status")
-    public ResponseEntity<?> updateOrderStatus(@CurrentUser final UserPrincipal currentUser,
-            @PathVariable final Long id,
-            @RequestParam(value = "status", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final OrderStatus status) {
-
-        try {
-            ordersService.setOrderStatus(id, status);
-            return ResponseEntity.ok().body(new ApiResponse<>(true, "Order Status Updated."));
-
-        } catch (final Exception ex) {
-            logger.error("Unable to change status of order "+id+" to "+status, ex);
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
     // Delete
 
     @DeleteMapping("/order/{id}")
@@ -134,5 +123,6 @@ public class OrderController {
             return ResponseEntity.badRequest().build();
         }
     }
+
 
 }
