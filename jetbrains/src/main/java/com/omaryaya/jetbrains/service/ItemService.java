@@ -1,5 +1,7 @@
 package com.omaryaya.jetbrains.service;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 // import com.omaryaya.jetbrains.exception.BadRequestException;
@@ -7,10 +9,9 @@ import java.util.List;
 import com.omaryaya.jetbrains.entity.Item;
 import com.omaryaya.jetbrains.entity.Order;
 import com.omaryaya.jetbrains.entity.Product;
-import com.omaryaya.jetbrains.payload.order.ItemRequest;
+import com.omaryaya.jetbrains.payload.model.OrderProfit;
 import com.omaryaya.jetbrains.repository.ItemRepository;
 import com.omaryaya.jetbrains.security.UserPrincipal;
-import com.omaryaya.jetbrains.util.Mapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,5 +59,23 @@ public class ItemService {
     }
 
     // UTIL
+
+    public List<?> getProfitsForOrders() {
+        try {
+            List<Object[]> queryResults = itemRepository.getOrdersProfitGroupByOrderId();
+            List<OrderProfit> orderProfits = new ArrayList<>();
+            for(Object[] tuple : queryResults) {
+                // tuple -> {order_id, profit}
+                BigInteger orderId = (BigInteger) tuple[0];
+                Double profit = (Double) tuple[1];
+                orderProfits.add(new OrderProfit(orderId, profit));
+            }
+            return orderProfits;
+
+        }catch(Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            return null;
+        }
+    }
 
 }

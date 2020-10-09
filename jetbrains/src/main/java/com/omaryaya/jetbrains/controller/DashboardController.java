@@ -3,12 +3,14 @@ package com.omaryaya.jetbrains.controller;
 import java.net.URI;
 import java.util.Currency;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
 import com.omaryaya.jetbrains.entity.Order;
 import com.omaryaya.jetbrains.payload.ApiResponse;
 import com.omaryaya.jetbrains.payload.PagedResponse;
+import com.omaryaya.jetbrains.payload.model.OrderProfit;
 import com.omaryaya.jetbrains.payload.order.OrderRequest;
 import com.omaryaya.jetbrains.security.CurrentUser;
 import com.omaryaya.jetbrains.security.UserPrincipal;
@@ -20,6 +22,7 @@ import com.omaryaya.jetbrains.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +36,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@Cacheable("dashboard")
 public class DashboardController {
 
     private static final Logger logger = LoggerFactory.getLogger(DashboardController.class);
@@ -42,26 +46,22 @@ public class DashboardController {
 
     @Autowired
     private ProductService productsService;
-    
-    
+
+    @Autowired
+    private ItemService itemsService;
+
     // Create
-    
-    @PostMapping("/create")
-    public ResponseEntity<?> createOrder(@CurrentUser final UserPrincipal currentUser,
-            @RequestBody final OrderRequest orderRequest) {
+
+    @GetMapping("/totalprofits")
+    public ResponseEntity<?> totalProfits(@CurrentUser final UserPrincipal currentUser) {
         try {
 
-            final Order order = ordersService.createOrder(currentUser, orderRequest);
+            final List<?> profitsPerOrder = itemsService.getProfitsForOrders();
 
-            final URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{orderId}")
-                    .buildAndExpand(order.getId()).toUri();
-
-            logger.info("Order {} added.", order.getReferenceNumber());
-
-            return ResponseEntity.created(location).body(new ApiResponse<Order>(true, order));
+            return ResponseEntity.ok().body(new ApiResponse<List<?>>(true, "Order profits", profitsPerOrder));
         } catch (final Exception ex) {
             return ResponseEntity.badRequest()
-                    .body(new ApiResponse<>(false, "Failed to add order. " + ex.getMessage()));
+                    .body(new ApiResponse<>(false, "Failed to retrieve profits. " + ex.getMessage()));
         }
     }
 
@@ -123,6 +123,5 @@ public class DashboardController {
             return ResponseEntity.badRequest().build();
         }
     }
-
 
 }

@@ -2,7 +2,6 @@ package com.omaryaya.jetbrains.service;
 
 import java.util.List;
 
-import com.omaryaya.jetbrains.exception.BadRequestException;
 import com.omaryaya.jetbrains.payload.PagedResponse;
 import com.omaryaya.jetbrains.util.Mapper;
 

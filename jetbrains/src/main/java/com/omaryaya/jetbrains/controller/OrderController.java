@@ -3,8 +3,6 @@ package com.omaryaya.jetbrains.controller;
 import java.net.URI;
 import java.util.List;
 
-import javax.validation.Valid;
-
 import com.omaryaya.jetbrains.entity.Order;
 import com.omaryaya.jetbrains.entity.OrderStatus;
 import com.omaryaya.jetbrains.payload.ApiResponse;
@@ -17,8 +15,8 @@ import com.omaryaya.jetbrains.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
-// import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -42,6 +40,7 @@ public class OrderController {
     // Create
 
     @PostMapping("/create")
+    @CacheEvict(cacheNames = {"dashboard"})
     public ResponseEntity<?> createOrder(@CurrentUser final UserPrincipal currentUser,
             @RequestBody final OrderRequest orderRequest) {
         try {

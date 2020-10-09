@@ -1,13 +1,10 @@
 package com.omaryaya.jetbrains.service;
 
-// import com.omaryaya.jetbrains.exception.BadRequestException;
-// import com.omaryaya.jetbrains.exception.ResourceNotFoundException;
 import com.omaryaya.jetbrains.entity.*;
 import com.omaryaya.jetbrains.payload.product.*;
 import com.omaryaya.jetbrains.payload.*;
 import com.omaryaya.jetbrains.repository.ProductRepository;
 import com.omaryaya.jetbrains.security.UserPrincipal;
-import com.omaryaya.jetbrains.util.Constants;
 import com.omaryaya.jetbrains.util.Helper;
 import com.omaryaya.jetbrains.util.Mapper;
 

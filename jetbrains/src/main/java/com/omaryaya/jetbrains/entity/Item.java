@@ -25,6 +25,7 @@ public class Item {
     private Long id;
 
     @JoinColumn(name= "product_id", nullable = false)
+    @ManyToOne
     private Product product;
 
     private int quantity;

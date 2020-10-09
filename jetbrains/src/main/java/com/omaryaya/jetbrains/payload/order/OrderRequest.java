@@ -1,7 +1,5 @@
 package com.omaryaya.jetbrains.payload.order;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 
