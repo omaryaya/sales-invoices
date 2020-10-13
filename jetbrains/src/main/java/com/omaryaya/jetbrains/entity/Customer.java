@@ -1,7 +1,5 @@
 package com.omaryaya.jetbrains.entity;
 
-import java.util.List;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 
@@ -28,8 +26,5 @@ public class Customer extends UserDateAudit {
 
 
     private String address;
-
-    @OneToMany
-    List<Order> orders;    
     
 }

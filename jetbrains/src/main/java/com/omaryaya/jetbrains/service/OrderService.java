@@ -1,13 +1,15 @@
 package com.omaryaya.jetbrains.service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
 import java.util.Set;
 
 import com.omaryaya.jetbrains.entity.Item;
 import com.omaryaya.jetbrains.entity.Order;
-import com.omaryaya.jetbrains.entity.OrderStatus;
+import com.omaryaya.jetbrains.model.OrderStatus;
+import com.omaryaya.jetbrains.model.OrderStatusCount;
 import com.omaryaya.jetbrains.entity.Product;
 import com.omaryaya.jetbrains.payload.order.ItemRequest;
 import com.omaryaya.jetbrains.payload.order.OrderRequest;
@@ -34,6 +36,9 @@ public class OrderService {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private CustomerService customService;
+
     // Create 
 
     public Order createOrder(UserPrincipal currentUser, OrderRequest orderRequest) {
@@ -44,10 +49,17 @@ public class OrderService {
         if(orderRequest.getReferenceNumber() != null)
             order.setReferenceNumber(orderRequest.getReferenceNumber().trim());
         
-        
         if(orderRequest.getCurrency() != null)
             order.setCurrency(Currency.getInstance(orderRequest.getCurrency().trim().toUpperCase()));
+        else
+            order.setCurrency(Currency.getInstance("EUR"));
         
+        // validate that none of the product Ids is null
+        List<Product> products = new ArrayList<>();    
+        for(ItemRequest itemRequest : orderRequest.getItems()) {
+            products.add(productService.findProductById(currentUser, itemRequest.getProductId()));
+        }
+
         order.setDate(Instant.now());
         order.setStatus(OrderStatus.NEW);
 
@@ -55,15 +67,18 @@ public class OrderService {
         if(orderRequest.getCustomerId() != null)
             order.setCustomer(null); */
         
-        logger.debug("order before save", order);
         order = orderRepository.save(order);
-        logger.debug("order after save", order);
 
-        for(ItemRequest itemRequest : orderRequest.getItems()) {
-            Product product = productService.findProductById(currentUser, itemRequest.getProductId());
+        Double cost = 0.0;
+        for(int i=0 ; i<products.size() ; i++) {
+            ItemRequest itemRequest = orderRequest.getItems().get(i);
+            Product product = products.get(i);
             itemRequest.setOrderId(order.getId());
-            itemService.createItem(currentUser, itemRequest.getQuantity(), order, product);
+            itemService.createItem(currentUser, itemRequest.getQuantity(), order, products.get(i));
+            cost += (Double) (product.getPrice() * itemRequest.getQuantity());
         }
+
+        order.setCost(cost);
         
         return order;
 
@@ -72,6 +87,13 @@ public class OrderService {
     // Read
     
     public List<Order> getAllOrders(UserPrincipal currentUser) {
+        List<Order> orders = orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+        for(Order order : orders) {
+            if(order.getCost() == null) {
+                order.setCost(itemService.getProfitForOrder(order.getId()));
+                orderRepository.save(order);
+            }
+        }
         return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
     }
 
@@ -81,13 +103,32 @@ public class OrderService {
         return order;
     }
 
+    public List<OrderStatusCount> groupOrdersByStatus() {
+        List<?> result = orderRepository.findAllGroupByStatus();
+        ServiceHelper<Object,OrderStatusCount> serviceHelper = new ServiceHelper<>();
+        List<OrderStatusCount> ordersByStatus = new ArrayList<>();
+        for(Object queryResult : result) {
+            ordersByStatus.add(serviceHelper.map(queryResult, OrderStatusCount.class));
+        }
+        return ordersByStatus;
+    }
+
     // Update
+
 
     // Update order status
     
 	public void setOrderStatus(Long id, OrderStatus status) {
         orderRepository.findById(id).map(order -> {
             order.setStatus(status);
+            return orderRepository.save(order);
+            
+        }).orElseThrow();
+    }
+    
+    public void setOrderCustomer(Long orderId, Long customerId) {
+        orderRepository.findById(orderId).map(order -> {
+            order.setCustomer(customService.getCustomerById(customerId));
             return orderRepository.save(order);
             
         }).orElseThrow();
@@ -108,10 +149,11 @@ public class OrderService {
     }
 
     // Items
-    // Currencies
     public List<Item> getItems(UserPrincipal currentUser, Long orderId) {
         return itemService.getAllItemsOfOrder(currentUser, orderId);
     }
 
-
+	public List<Order> getOrdersByCustomer(Long id) {
+		return orderRepository.findByCustomerId(id);
+	}
 }

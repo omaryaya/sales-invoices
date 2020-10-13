@@ -15,6 +15,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import com.omaryaya.jetbrains.entity.audit.UserDateAudit;
+import com.omaryaya.jetbrains.model.OrderStatus;
 
 import org.hibernate.annotations.NaturalId;
 
@@ -49,5 +50,7 @@ public class Order extends UserDateAudit {
 
     @Enumerated(EnumType.ORDINAL)
     private OrderStatus status;
+
+    private Double cost;
     
 }

@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 
 public class ServiceHelper<T, Q> {
 
-    public PagedResponse<Q> formatProducts(Page<T> items, Class<Q> qClass) {
+    public PagedResponse<Q> formatPagedResponse(Page<T> items, Class<Q> qClass) {
         List<Q> responses = items.map(item -> {
             return new Mapper<T, Q>().mapEntityToDto(item, qClass);
 
@@ -18,6 +18,10 @@ public class ServiceHelper<T, Q> {
 
         return new PagedResponse<>(responses, items.getNumber(), items.getSize(),
                 items.getTotalElements(), items.getTotalPages(), items.isLast());
+    }
+
+    public Q map(T entity, Class<Q> qClass) {
+        return new Mapper<T, Q>().mapEntityToDto(entity, qClass);
     }
     
 }

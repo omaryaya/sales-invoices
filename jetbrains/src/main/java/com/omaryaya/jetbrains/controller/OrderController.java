@@ -4,7 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import com.omaryaya.jetbrains.entity.Order;
-import com.omaryaya.jetbrains.entity.OrderStatus;
+import com.omaryaya.jetbrains.model.OrderStatus;
 import com.omaryaya.jetbrains.payload.ApiResponse;
 import com.omaryaya.jetbrains.payload.order.OrderRequest;
 import com.omaryaya.jetbrains.security.CurrentUser;
@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +31,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/orders")
+@Cacheable("orders")
 public class OrderController {
 
     @Autowired
@@ -106,14 +108,15 @@ public class OrderController {
     @PutMapping("/order/{id}/status")
     public ResponseEntity<?> updateOrderStatus(@CurrentUser final UserPrincipal currentUser,
             @PathVariable final Long id,
-            @RequestParam(value = "status", defaultValue = Constants.DEFAULT_PAGE_NUMBER) final OrderStatus status) {
+            @RequestParam final String status) {
 
         try {
-            ordersService.setOrderStatus(id, status);
+            OrderStatus orderStatus = OrderStatus.getEnum(status);
+            ordersService.setOrderStatus(id, orderStatus);
             return ResponseEntity.ok().body(new ApiResponse<>(true, "Order Status Updated."));
 
         } catch (final Exception ex) {
-            logger.error("Unable to change status of order "+id+" to "+status, ex);
+            logger.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().build();
         }
     }
@@ -129,7 +132,7 @@ public class OrderController {
             return ResponseEntity.ok().body(new ApiResponse<>(true, "Order Deleted."));
 
         } catch (final Exception ex) {
-            logger.error("Unable to delete order", ex);
+            logger.error(ex.getMessage(), ex);
             return ResponseEntity.badRequest().build();
         }
     }

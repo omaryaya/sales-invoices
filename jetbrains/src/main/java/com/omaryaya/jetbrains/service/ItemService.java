@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 /**
  * 'get' methods return DAOs (i.e. responses), while 'find' methods return exact
  * db entities
@@ -34,7 +35,7 @@ public class ItemService {
     public Item createItem(UserPrincipal currentUser, int quantity, Order order, Product product) {
 
         Item item = new Item();
-        
+
         item.setQuantity(quantity);
         item.setOrder(order);
         item.setProduct(product);
@@ -58,24 +59,35 @@ public class ItemService {
         itemRepository.deleteById(id);
     }
 
-    // UTIL
+    // Dashboard
 
-    public List<?> getProfitsForOrders() {
-        try {
-            List<Object[]> queryResults = itemRepository.getOrdersProfitGroupByOrderId();
-            List<OrderProfit> orderProfits = new ArrayList<>();
-            for(Object[] tuple : queryResults) {
-                // tuple -> {order_id, profit}
-                BigInteger orderId = (BigInteger) tuple[0];
-                Double profit = (Double) tuple[1];
-                orderProfits.add(new OrderProfit(orderId, profit));
-            }
-            return orderProfits;
+    public List<?> getCostsOfAllOrders() {
 
-        }catch(Exception ex) {
-            logger.error(ex.getMessage(), ex);
-            return null;
+        List<Object[]> queryResults = itemRepository.getOrdersProfitGroupByOrderId();
+        List<OrderProfit> orderProfits = new ArrayList<>();
+        for (Object[] tuple : queryResults) {
+            // tuple -> {order_id, profit}
+            BigInteger orderId = (BigInteger) tuple[0];
+            Double profit = (Double) tuple[1];
+            orderProfits.add(new OrderProfit(orderId, profit));
         }
+        return orderProfits;
+
+    }
+
+    public Long getYearProfit() {
+
+        Long yearProfit = itemRepository.getYearProfit();
+        return yearProfit;
+
+    }
+
+    // Orders
+    public Double getProfitForOrder(Long orderId) {
+
+        Double profit = itemRepository.getCostByOrderId(orderId);
+        return profit;
+
     }
 
 }
